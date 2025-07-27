@@ -32,6 +32,8 @@ const appState = {
     },
     // Holds the unlocked achievement IDs.
     achievements: new Set(),
+    // Flag for the new Reversus Total individual flow
+    reversusTotalIndividualFlow: false,
 };
 
 /**

@@ -36,6 +36,10 @@ export const reversusTargetModal = document.getElementById('reversus-target-moda
 export const reversusTargetScoreButton = document.getElementById('reversus-target-score');
 export const reversusTargetMovementButton = document.getElementById('reversus-target-movement');
 export const reversusTargetCancelButton = document.getElementById('reversus-target-cancel');
+export const reversusTotalChoiceModal = document.getElementById('reversus-total-choice-modal');
+export const reversusTotalGlobalButton = document.getElementById('reversus-total-global-button');
+export const reversusTotalIndividualButton = document.getElementById('reversus-total-individual-button');
+export const reversusTotalChoiceCancel = document.getElementById('reversus-total-choice-cancel');
 export const drawStartModal = document.getElementById('draw-start-modal');
 export const drawStartTitle = document.getElementById('draw-start-title');
 export const drawStartCardsContainerEl = document.getElementById('draw-start-cards-container');
@@ -126,6 +130,11 @@ export const inversusModeButton = document.getElementById('inversus-mode-button'
 export const scalableContainer = document.getElementById('scalable-container');
 export const achievementUnlockedToast = document.getElementById('achievement-unlocked-toast');
 export const toastText = document.getElementById('toast-text');
+
+// Fullscreen Announce Modal
+export const fullscreenAnnounceModal = document.getElementById('fullscreen-announce-modal');
+export const fullscreenAnnounceImage = document.getElementById('fullscreen-announce-image');
+export const fullscreenAnnounceText = document.getElementById('fullscreen-announce-text');
 
 // Endgame Sequence
 export const endgameSequenceModal = document.getElementById('endgame-sequence-modal');

@@ -38,7 +38,7 @@ export const POSITIVE_EFFECTS = {
 
 export const NEGATIVE_EFFECTS = {
     'Resto Menor': 'Seu resto nesta rodada é 2. Se estiver em dupla o resto da dupla é 2.',
-    'Carta Maior': 'Descarte a maior carta de valor e compre uma nova. Se estiver em dupla, sua dupla descarta uma carta maior da mão e compra uma nova.',
+    'Carta Maior': 'Descarte a maior carta de valor e compre uma nova. Se em dupla, sua dupla descarta uma carta maior da mão e compra uma nova.',
     'Super Exposto': 'Efeitos de "Menos" e "Desce" são dobrados contra você. Se em dupla, sua dupla também sofre.',
     'Castigo': 'Se perder a rodada, você voltará 3 casas. Se em dupla, sua dupla também volta.',
     'Parada': 'Se vencer a rodada, você não ganha o bônus de avanço. Se em dupla, a dupla não avança.',
@@ -57,6 +57,25 @@ export const ACHIEVEMENTS = {
     'true_end_beta': { name: 'Não é o final verdadeiro', description: 'Você venceu... mas ainda tem um desafio maior.' },
     'true_end_final': { name: 'Final Final', description: 'Parabéns, depois me diz como conseguiu vencer.' },
     'all_achievements': { name: 'Todas as Conquistas', description: 'Uau! 100% do jogo lol' }
+};
+
+export const AI_DIALOGUE = {
+    'necroverso_tutorial': {
+        winning: ["Você ainda tem muito o que aprender...", "Não desanime... só estamos começando."],
+        losing: ["Ora, ora...", "Muito bem, você aprende rápido!"]
+    },
+    'contravox': {
+        winning: ["!aroga ieredrep oãn e idrep acnun uE", "recnev uov euq ies uE"],
+        losing: ["?ossi zef êcov ossi omoC", "otiderca oãn uE"]
+    },
+    'versatrix': {
+        winning: ["Estou me divertindo ;)", "Obrigada por me deixar vencer..."],
+        losing: ["Sabe que eu posso inverter o campo né?", "Eu pensei... que você era diferente... me enganei?"]
+    },
+    'reversum': {
+        winning: ["PENSEI QUE SERIA UM DESAFIO", "FÁCIL DEMAIS"],
+        losing: ["...", "INTERESSANTE"]
+    }
 };
 
 

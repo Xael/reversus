@@ -113,6 +113,12 @@
     100% { background-position: 0% 50%; }
 }
 
+@keyframes psychedelic-pan {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
 @keyframes drift {
     from {
         transform: translateY(0) rotate(0deg);
@@ -543,7 +549,7 @@ body.screen-shaking {
     gap: 0.5rem;
     border: 3px solid transparent;
     transition: all 0.3s ease;
-    overflow-y: hidden;
+    overflow: hidden; /* Changed from overflow-y: hidden */
     color: #212121;
     position: relative;
 }
@@ -593,6 +599,8 @@ body.screen-shaking {
     padding-bottom: 0.5rem;
     border-bottom: 1px solid rgba(0,0,0,0.2);
     gap: 0.3rem;
+    position: relative;
+    z-index: 2; /* Ensure header is above portrait */
 }
 .player-area-necro-final .player-header {
     border-bottom: 1px solid rgba(255,255,255,0.2);
@@ -645,14 +653,21 @@ body.screen-shaking {
     border: 1px solid rgba(255,255,255,0.5);
 }
 
-.winning-badge { 
-    background-color: var(--accent-red); 
-    color: var(--text-primary); 
+.player-status-indicator {
     padding: 2px 6px; 
     border-radius: 5px; 
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.9rem;
+    font-weight: 700;
 }
+.player-status-indicator.winning {
+    color: var(--accent-blue);
+    text-shadow: 0 0 5px var(--accent-blue);
+}
+.player-status-indicator.losing {
+    color: var(--accent-red);
+    text-shadow: 0 0 5px var(--accent-red);
+}
+
 
 /* Shared Header styles for all players */
 .opponent-header-top, .human-header-top {
@@ -663,35 +678,31 @@ body.screen-shaking {
     flex-wrap: wrap;
 }
 
-.opponent-stats, .human-stats {
+.player-stats {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     width: 100%;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+    gap: 0.25rem;
     background: rgba(0,0,0,0.1);
-    padding: 4px 6px;
+    padding: 6px 8px;
     border-radius: 5px;
+    font-size: 1rem; /* Increased font size */
+    line-height: 1.4;
 }
-.player-area-necro-final .opponent-stats, .player-area-necro-final .human-stats {
+
+.player-area-necro-final .player-stats {
     background: rgba(255,255,255,0.1);
 }
 
-.opponent-stats { font-size: 0.8rem; }
-.human-stats { font-size: 0.9rem; }
-.opponent-stats > span, .human-stats > span {
-    white-space: nowrap;
+.player-stats > div {
+    display: flex;
+    justify-content: space-between;
 }
-.human-player-header .human-stats {
-    justify-content: space-around;
+.player-stats .effect-list {
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
-.human-player-header .effect-tag {
-    background-color: rgba(0,0,0,0.1);
-    padding: 2px 5px;
-    border-radius: 4px;
-    margin: 0 2px;
-}
+
 
 .player-hand {
     display: flex;
@@ -700,6 +711,8 @@ body.screen-shaking {
     min-height: 105px;
     flex-wrap: wrap;
     align-content: flex-start;
+    position: relative;
+    z-index: 2; /* Ensure hand is above portrait */
 }
 
 .right-panel .player-hand {
@@ -715,6 +728,8 @@ body.screen-shaking {
     background-color: rgba(0, 0, 0, 0.15);
     border-radius: 5px;
     min-height: 115px;
+    position: relative;
+    z-index: 2; /* Ensure play-zone is above portrait */
 }
 .player-area-necro-final .play-zone {
     background-color: rgba(255,255,255,0.1);
@@ -757,6 +772,23 @@ body.screen-shaking {
     font-weight: 600;
     text-align: center;
 }
+
+/* Story Battle Character Portrait */
+.player-area-character-portrait {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 45%;
+    height: auto;
+    max-height: 60%;
+    object-fit: contain;
+    object-position: bottom right;
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 1;
+    filter: drop-shadow(2px 2px 5px rgba(0,0,0,0.5));
+}
+
 
 /* --- CARDS --- */
 .card {
@@ -1050,6 +1082,42 @@ body.screen-shaking {
     background-size: 400% 400%;
     animation: reversus-total-pan 10s ease infinite;
 }
+
+/* Fullscreen Final Boss Announce Modal */
+#fullscreen-announce-modal {
+    background: none;
+    backdrop-filter: none;
+    flex-direction: column;
+    z-index: 2000;
+}
+#fullscreen-announce-modal.psychedelic-bg {
+    background: linear-gradient(270deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff, #ff0000);
+    background-size: 1600% 1600%;
+    animation: psychedelic-pan 15s ease infinite;
+}
+#fullscreen-announce-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+#fullscreen-announce-image {
+    max-width: 60vw;
+    max-height: 60vh;
+    object-fit: contain;
+    animation: final-boss-glow 2s infinite ease-in-out;
+}
+#fullscreen-announce-text {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-shadow: 2px 2px 5px #000;
+    text-align: center;
+    background: rgba(0,0,0,0.5);
+    padding: 1rem 2rem;
+    border-radius: 10px;
+}
+
 
 /* --- STORY MODE ENHANCEMENTS --- */
 .story-star {

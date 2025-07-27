@@ -50,7 +50,7 @@
                     <button id="inversus-mode-button" class="control-button btn-inversus-color hidden">INVERSUS</button>
                 </div>
             </div>
-             <div id="version-footer">Versão 8.0</div>
+             <div id="version-footer">Versão 9.0</div>
         </div>
     </div>
 
@@ -79,7 +79,7 @@
                 <ul>
                     <li><strong>Pula:</strong> Força um oponente a mover seu peão para um caminho vazio no tabuleiro.</li>
                     <li><strong>Reversus:</strong> Inverte um efeito ('Mais' vira 'Menos', 'Sobe' vira 'Desce', etc.) em um único jogador.</li>
-                    <li><strong>Reversus Total:</strong> A carta mais poderosa. Inverte TODOS os efeitos em TODOS os jogadores na rodada.</li>
+                    <li><strong>Reversus Total:</strong> A carta mais poderosa. Inverte TODOS os efeitos em TODOS os jogadores na rodada. Pode também ser usada para travar um efeito revertido em um único alvo.</li>
                 </ul>
                  <p><strong>Efeitos de Campo:</strong> Parar em casas coloridas no tabuleiro ativa efeitos especiais que duram a rodada inteira!</p>
             </div>
@@ -197,6 +197,18 @@
                 <button id="reversus-target-movement" class="control-button secondary">Movimento (Sobe/Desce)</button>
             </div>
             <button id="reversus-target-cancel" class="control-button cancel">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="reversus-total-choice-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>Escolha o Efeito da Reversus Total</h2>
+            <p>Como você deseja usar esta carta?</p>
+            <div class="button-group">
+                <button id="reversus-total-global-button" class="control-button">Reversus Total (Inverte Tudo)</button>
+                <button id="reversus-total-individual-button" class="control-button secondary">Reversus Individual (Trava 1 Efeito)</button>
+            </div>
+            <button id="reversus-total-choice-cancel" class="control-button cancel">Cancelar</button>
         </div>
     </div>
     
@@ -382,6 +394,13 @@
         <img src="cartanecroverso.png" id="necro-x-card-img" alt="Necro X Card">
     </div>
     <div id="reversus-total-bg-animation" class="hidden"></div>
+    
+    <div id="fullscreen-announce-modal" class="modal-overlay hidden">
+        <div id="fullscreen-announce-content">
+            <img src="" id="fullscreen-announce-image" alt="Anúncio de Chefe">
+            <p id="fullscreen-announce-text"></p>
+        </div>
+    </div>
 
     <button id="debug-button" title="Menu da Partida">&#9881;</button>
 

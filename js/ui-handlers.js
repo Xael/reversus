@@ -1,4 +1,6 @@
 
+
+
 import * as dom from './dom.js';
 import { getState, updateState } from './state.js';
 import * as game from './game.js';
@@ -40,6 +42,33 @@ function handlePlayerTargetSelection(targetId) {
         ui.renderAll();
         return;
     }
+    
+    if (getState().reversusTotalIndividualFlow) {
+        dom.targetModal.classList.add('hidden');
+        
+        gameState.reversusTarget = { card: gameState.selectedCard, targetPlayerId: targetId };
+        
+        const targetPlayer = gameState.players[targetId];
+        const canReverseScore = targetPlayer.playedCards.effect.some(c => ['Mais', 'Menos'].includes(c.name));
+        const canReverseMove = targetPlayer.playedCards.effect.some(c => ['Sobe', 'Desce', 'Pula'].includes(c.name));
+
+        if (!canReverseScore && !canReverseMove) {
+            updateLog(`Reversus Individual falhou: ${targetPlayer.name} não tem efeitos de Pontuação ou Movimento para reverter.`);
+            gameState.gamePhase = 'playing';
+            gameState.selectedCard = null;
+            updateState('reversusTotalIndividualFlow', false);
+            ui.renderAll();
+            return;
+        }
+
+        gameState.gamePhase = 'reversus_targeting';
+        dom.reversusTargetScoreButton.disabled = !canReverseScore;
+        dom.reversusTargetMovementButton.disabled = !canReverseMove;
+        dom.reversusTargetModal.classList.remove('hidden');
+        ui.updateTurnIndicator();
+        return;
+    }
+
 
     if (!gameState.selectedCard) return;
     const card = gameState.selectedCard;
@@ -165,6 +194,8 @@ export function initializeUiHandlers() {
 
         if (card.type === 'value') {
             game.playCard(player, card);
+        } else if (card.name === 'Reversus Total') {
+            dom.reversusTotalChoiceModal.classList.remove('hidden');
         } else if (card.type === 'effect') {
             gameState.gamePhase = 'targeting';
             ui.updateTurnIndicator();
@@ -220,6 +251,7 @@ export function initializeUiHandlers() {
         }
         gameState.gamePhase = 'playing';
         gameState.selectedCard = null;
+        updateState('reversusTotalIndividualFlow', false);
         dom.targetModal.classList.add('hidden');
         ui.renderAll();
     });
@@ -230,7 +262,8 @@ export function initializeUiHandlers() {
         const { card, targetPlayerId } = gameState.reversusTarget;
         dom.reversusTargetModal.classList.add('hidden');
         gameState.gamePhase = 'playing';
-        game.playCard(gameState.players['player-1'], card, targetPlayerId, 'score');
+        const isIndividualLock = getState().reversusTotalIndividualFlow;
+        game.playCard(gameState.players['player-1'], card, targetPlayerId, 'score', { isIndividualLock });
     });
     
     dom.reversusTargetMovementButton.addEventListener('click', () => {
@@ -239,7 +272,8 @@ export function initializeUiHandlers() {
         const { card, targetPlayerId } = gameState.reversusTarget;
         dom.reversusTargetModal.classList.add('hidden');
         gameState.gamePhase = 'playing';
-        game.playCard(gameState.players['player-1'], card, targetPlayerId, 'movement');
+        const isIndividualLock = getState().reversusTotalIndividualFlow;
+        game.playCard(gameState.players['player-1'], card, targetPlayerId, 'movement', { isIndividualLock });
     });
     
     dom.reversusTargetCancelButton.addEventListener('click', () => {
@@ -247,7 +281,44 @@ export function initializeUiHandlers() {
         gameState.gamePhase = 'playing';
         gameState.selectedCard = null;
         gameState.reversusTarget = null;
+        updateState('reversusTotalIndividualFlow', false);
         dom.reversusTargetModal.classList.add('hidden');
+        ui.renderAll();
+    });
+
+    dom.reversusTotalGlobalButton.addEventListener('click', () => {
+        const { gameState } = getState();
+        if (!gameState.selectedCard || gameState.selectedCard.name !== 'Reversus Total') return;
+        dom.reversusTotalChoiceModal.classList.add('hidden');
+        game.playCard(gameState.players['player-1'], gameState.selectedCard, 'player-1');
+    });
+
+    dom.reversusTotalIndividualButton.addEventListener('click', () => {
+        const { gameState } = getState();
+        if (!gameState.selectedCard || gameState.selectedCard.name !== 'Reversus Total') return;
+        dom.reversusTotalChoiceModal.classList.add('hidden');
+        
+        updateState('reversusTotalIndividualFlow', true);
+
+        gameState.gamePhase = 'targeting';
+        ui.updateTurnIndicator();
+        dom.targetModalCardName.textContent = 'Reversus Individual';
+        dom.targetModal.querySelector('p').textContent = 'Selecione o alvo para travar um efeito:';
+        
+        dom.targetPlayerButtonsEl.innerHTML = gameState.playerIdsInGame.map(id => {
+            const targetPlayer = gameState.players[id];
+            const buttonText = id === 'player-1' ? 'Em Mim' : targetPlayer.name;
+            const playerIdNumber = id.split('-')[1];
+            return `<button class="control-button target-player-${playerIdNumber}" data-target-id="${id}">${buttonText}</button>`;
+        }).join('');
+
+        dom.targetModal.classList.remove('hidden');
+    });
+
+    dom.reversusTotalChoiceCancel.addEventListener('click', () => {
+        dom.reversusTotalChoiceModal.classList.add('hidden');
+        const { gameState } = getState();
+        gameState.selectedCard = null;
         ui.renderAll();
     });
 
@@ -309,251 +380,257 @@ export function initializeUiHandlers() {
             if (handEl && handEl.id === 'hand-player-1' && !cardEl.classList.contains('disabled')) {
                 handleCardClick(cardEl);
             }
-        } else if (fieldEffectIndicator) {
+        } else if(fieldEffectIndicator) {
             const playerId = fieldEffectIndicator.dataset.playerId;
             const effect = gameState.activeFieldEffects.find(fe => fe.appliesTo === playerId);
             if (effect) {
-                dom.fieldEffectInfoTitle.textContent = `Efeito de ${gameState.players[playerId].name}`;
-                dom.fieldEffectInfoName.textContent = effect.name;
-                dom.fieldEffectInfoDescription.textContent = effect.description;
-                dom.fieldEffectInfoModal.querySelector('.field-effect-card').className = `field-effect-card ${effect.type}`;
-                dom.fieldEffectInfoModal.classList.remove('hidden');
+                 dom.fieldEffectInfoTitle.textContent = `Efeito Ativo: ${gameState.players[playerId].name}`;
+                 dom.fieldEffectInfoName.textContent = effect.name;
+                 dom.fieldEffectInfoDescription.textContent = effect.description;
+                 dom.fieldEffectInfoModal.querySelector('.field-effect-card').className = `field-effect-card ${effect.type}`;
+                 dom.fieldEffectInfoModal.classList.remove('hidden');
             }
         }
     });
-
     dom.fieldEffectInfoCloseButton.addEventListener('click', () => dom.fieldEffectInfoModal.classList.add('hidden'));
-    
+
     dom.cardViewerCloseButton.addEventListener('click', () => dom.cardViewerModalEl.classList.add('hidden'));
-    dom.cardViewerModalEl.addEventListener('click', (e) => {
-        if (e.target === dom.cardViewerModalEl) {
-            dom.cardViewerModalEl.classList.add('hidden');
-        }
+
+    dom.pvpRoomListCloseButton.addEventListener('click', () => {
+        dom.pvpRoomListModal.classList.add('hidden');
+        ui.showSplashScreen();
     });
 
-    dom.pvpRoomListCloseButton.addEventListener('click', ui.showSplashScreen);
-    
-    dom.pvpLobbyCloseButton.addEventListener('click', () => {
-        dom.pvpLobbyModal.classList.add('hidden');
-        dom.pvpRoomListModal.classList.remove('hidden');
-    });
-
-    dom.pvpRoomGridEl.addEventListener('click', (e) => {
+    dom.pvpRoomGridEl.addEventListener('click', e => {
         const button = e.target.closest('.pvp-enter-room-button');
-        if (button) {
-            const roomId = parseInt(button.dataset.roomId);
-            const { pvpRooms } = getState();
-            const room = pvpRooms.find(r => r.id === roomId);
-            if (room) {
-                 updateState('currentEnteringRoomId', roomId);
-                if(room.password && room.id !== 12) { // Room 12 password is achievement based
-                    dom.pvpPasswordModal.classList.remove('hidden');
-                } else {
-                    dom.pvpRoomListModal.classList.add('hidden');
-                    ui.updateLobbyUi(roomId);
-                    dom.pvpLobbyModal.classList.remove('hidden');
-                }
+        if (button && !button.disabled) {
+            const roomId = parseInt(button.dataset.roomId, 10);
+            const room = getState().pvpRooms.find(r => r.id === roomId);
+            if (room.password) {
+                updateState('currentEnteringRoomId', roomId);
+                dom.pvpPasswordInput.value = '';
+                dom.pvpPasswordModal.classList.remove('hidden');
+            } else {
+                // Join public room logic (TODO)
+                console.log(`Joining public room ${roomId}`);
             }
         }
     });
 
     dom.pvpPasswordSubmit.addEventListener('click', () => {
-        const { pvpRooms, currentEnteringRoomId } = getState();
+        const { currentEnteringRoomId, pvpRooms } = getState();
         const room = pvpRooms.find(r => r.id === currentEnteringRoomId);
         if (room && dom.pvpPasswordInput.value === room.password) {
             dom.pvpPasswordModal.classList.add('hidden');
             dom.pvpRoomListModal.classList.add('hidden');
-            ui.updateLobbyUi(room.id);
             dom.pvpLobbyModal.classList.remove('hidden');
+            ui.updateLobbyUi(currentEnteringRoomId);
+            ui.addLobbyChatMessage('Sistema', 'Você entrou na sala.');
         } else {
             alert('Senha incorreta!');
         }
-        dom.pvpPasswordInput.value = '';
     });
     dom.pvpPasswordCancel.addEventListener('click', () => dom.pvpPasswordModal.classList.add('hidden'));
+    
+    dom.pvpLobbyCloseButton.addEventListener('click', () => {
+        dom.pvpLobbyModal.classList.add('hidden');
+        dom.pvpRoomListModal.classList.remove('hidden');
+        ui.renderPvpRooms(); // Refresh room list
+    });
 
     dom.lobbyGameModeEl.addEventListener('change', () => {
         const { currentEnteringRoomId } = getState();
-        ui.updateLobbyUi(currentEnteringRoomId || 1); // Pass a default or stored room ID
+        ui.updateLobbyUi(currentEnteringRoomId);
     });
-    const handleLobbyChatSend = () => {
+
+    dom.lobbyStartGameButton.addEventListener('click', () => {
+        const { currentEnteringRoomId } = getState();
+        const room = getState().pvpRooms.find(r => r.id === currentEnteringRoomId);
+        if (!room) return;
+        
+        const mode = dom.lobbyGameModeEl.value;
+        let numPlayers, gameModeType = 'solo', overrides = {};
+
+        switch (mode) {
+            case 'solo-2p': 
+                numPlayers = 2;
+                overrides['player-2'] = { aiType: document.getElementById('lobby-ai-p2').value };
+                break;
+            case 'solo-3p':
+                numPlayers = 3;
+                overrides['player-2'] = { aiType: document.getElementById('lobby-ai-p2').value };
+                overrides['player-3'] = { aiType: document.getElementById('lobby-ai-p3').value };
+                break;
+            case 'solo-4p':
+                numPlayers = 4;
+                 overrides['player-2'] = { aiType: document.getElementById('lobby-ai-p2').value };
+                 overrides['player-3'] = { aiType: document.getElementById('lobby-ai-p3').value };
+                 overrides['player-4'] = { aiType: document.getElementById('lobby-ai-p4').value };
+                break;
+            case 'duo':
+                numPlayers = 4;
+                gameModeType = 'duo';
+                overrides['player-2'] = { aiType: document.getElementById('lobby-ai-p2').value };
+                overrides['player-3'] = { aiType: document.getElementById('lobby-ai-p3').value }; // Ally
+                overrides['player-4'] = { aiType: document.getElementById('lobby-ai-p4').value }; // Opponent
+                break;
+        }
+
+        game.initializeGame(gameModeType, { numPlayers, overrides });
+    });
+
+    dom.lobbyChatSendButton.addEventListener('click', () => {
         const message = dom.lobbyChatInput.value.trim();
-        if(message) {
+        if (message) {
             ui.addLobbyChatMessage('Você', message);
             dom.lobbyChatInput.value = '';
         }
-    };
-    dom.lobbyChatSendButton.addEventListener('click', handleLobbyChatSend);
-    dom.lobbyChatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleLobbyChatSend(); });
-
-    dom.lobbyStartGameButton.addEventListener('click', () => {
-        const mode = dom.lobbyGameModeEl.value;
-        const p2AI = document.getElementById('lobby-ai-p2').value;
-        const p3AI = document.getElementById('lobby-ai-p3').value;
-        const p4AI = document.getElementById('lobby-ai-p4').value;
-        
-        const { currentEnteringRoomId } = getState();
-        const isSpecialRoom = currentEnteringRoomId === 12;
-
-        const getAiName = (selectValue, defaultName) => {
-            if (!isSpecialRoom || selectValue === 'default') {
-                return defaultName;
-            }
-             // For special characters, derive name from value
-            return {
-                contravox: 'Contravox',
-                versatrix: 'Versatrix',
-                reversum: 'Rei Reversum',
-                necroverso: 'Necroverso',
-                necroverso_final: 'Necroverso Final'
-            }[selectValue] || defaultName;
-        };
-        
-        const gameOptions = {
-            overrides: {
-                'player-2': { aiType: p2AI, name: getAiName(p2AI, 'Jogador 2') },
-                'player-3': { aiType: p3AI, name: getAiName(p3AI, 'Jogador 3') },
-                'player-4': { aiType: p4AI, name: getAiName(p4AI, 'Jogador 4') },
-            }
-        };
-
-        if (mode.startsWith('solo')) game.initializeGame('solo', { ...gameOptions, numPlayers: parseInt(mode.slice(-2, -1)) });
-        else if (mode === 'duo') game.initializeGame('duo', { ...gameOptions, numPlayers: 4 });
+    });
+    dom.lobbyChatInput.addEventListener('keypress', e => {
+        if (e.key === 'Enter') {
+            dom.lobbyChatSendButton.click();
+        }
     });
 
-    dom.musicPlayer.addEventListener('ended', sound.changeTrack);
+    dom.continueButton.addEventListener('click', () => {
+        sound.initializeMusic();
+        saveLoad.loadGameState();
+    });
+
     dom.muteButton.addEventListener('click', sound.toggleMute);
-    dom.volumeSlider.addEventListener('input', (e) => sound.setVolume(parseFloat(e.target.value)));
     dom.nextTrackButton.addEventListener('click', sound.changeTrack);
+    dom.volumeSlider.addEventListener('input', (e) => sound.setVolume(parseFloat(e.target.value)));
     dom.fullscreenButton.addEventListener('click', () => {
-        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => console.error(err));
-        else document.exitFullscreen();
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
     });
 
+    // --- In-Game Menu Handlers ---
     dom.debugButton.addEventListener('click', () => dom.gameMenuModal.classList.remove('hidden'));
     dom.gameMenuCloseButton.addEventListener('click', () => dom.gameMenuModal.classList.add('hidden'));
 
-    dom.menuSaveGameButton.addEventListener('click', () => {
-        dom.gameMenuModal.classList.add('hidden');
-        dom.saveGameConfirmModal.classList.remove('hidden');
+    dom.menuSaveGameButton.addEventListener('click', () => dom.saveGameConfirmModal.classList.remove('hidden'));
+    dom.saveGameYesButton.addEventListener('click', () => {
+        saveLoad.saveGameState();
+        dom.saveGameConfirmModal.classList.add('hidden');
     });
-    dom.saveGameYesButton.addEventListener('click', () => saveLoad.saveGameState());
     dom.saveGameNoButton.addEventListener('click', () => dom.saveGameConfirmModal.classList.add('hidden'));
 
-    dom.menuRestartRoundButton.addEventListener('click', () => {
-        dom.gameMenuModal.classList.add('hidden');
-        dom.restartRoundConfirmModal.classList.remove('hidden');
-    });
+    dom.menuRestartRoundButton.addEventListener('click', () => dom.restartRoundConfirmModal.classList.remove('hidden'));
     dom.restartRoundYesButton.addEventListener('click', () => {
         const { roundStartStateSnapshot } = getState();
         if (roundStartStateSnapshot) {
-            // Use a robust deep copy to prevent any reference issues.
             updateState('gameState', JSON.parse(JSON.stringify(roundStartStateSnapshot)));
             updateLog("Rodada reiniciada a partir do último backup.");
-            const { gameState } = getState();
-            const currentPlayer = gameState.players[gameState.currentPlayer];
-            // Must render first, then check for AI turn
             ui.renderAll();
-            if (currentPlayer && !currentPlayer.isHuman) {
-                game.executeAiTurn(currentPlayer);
-            }
         } else {
-            updateLog("Nenhum backup de rodada disponível.");
+            updateLog("Nenhum backup de rodada encontrado.");
         }
         dom.restartRoundConfirmModal.classList.add('hidden');
     });
     dom.restartRoundNoButton.addEventListener('click', () => dom.restartRoundConfirmModal.classList.add('hidden'));
-    
-    dom.menuExitGameButton.addEventListener('click', () => {
-        dom.gameMenuModal.classList.add('hidden');
-        dom.exitGameConfirmModal.classList.remove('hidden');
-    });
+
+    dom.menuExitGameButton.addEventListener('click', () => dom.exitGameConfirmModal.classList.remove('hidden'));
     dom.exitGameYesButton.addEventListener('click', () => {
         dom.exitGameConfirmModal.classList.add('hidden');
+        dom.gameMenuModal.classList.add('hidden');
         ui.showSplashScreen();
     });
     dom.exitGameNoButton.addEventListener('click', () => dom.exitGameConfirmModal.classList.add('hidden'));
-
-    dom.continueButton.addEventListener('click', saveLoad.loadGameState);
-
-    document.addEventListener('startStoryGame', (e) => {
-        game.initializeGame(e.detail.mode, e.detail.options);
-    });
-
+    
+    // --- Custom Event Listener for Story ---
     document.addEventListener('storyWinLoss', (e) => {
         const { battle, won, reason } = e.detail;
-        const { storyState, gameState } = getState();
-        const elapsedMinutes = (Date.now() - getState().gameStartTime) / 60000;
+        const state = getState();
+        state.gameState.gamePhase = 'game_over'; // Stop further game logic
         
-        gameState.gamePhase = 'game_over'; // Stop further game actions
-        
-        // This is the fix: Hide the game UI before showing the result.
-        dom.appContainerEl.classList.add('hidden');
-        dom.debugButton.classList.add('hidden');
-        
-        // This is the new fix for the black screen: make the story modal visible.
-        dom.storyModeModalEl.classList.remove('hidden');
+        let nextNode = null;
+        let achievementId = null;
 
-        // Grant achievements based on any outcome
-        if(won) {
-            achievements.grantAchievement('first_win');
-            if (elapsedMinutes < 5 && battle !== 'tutorial_necroverso') {
-                achievements.grantAchievement('speed_run');
-            }
-        } else {
-            achievements.grantAchievement('first_defeat');
-        }
-
-        switch(battle) {
+        switch (battle) {
             case 'tutorial_necroverso':
-                story.renderStoryNode('post_tutorial');
+                nextNode = 'post_tutorial';
+                achievementId = won ? 'first_win' : 'first_defeat';
                 break;
             case 'contravox':
                 if (won) {
-                    achievements.grantAchievement('contravox_win');
-                    story.renderStoryNode('post_contravox_victory');
+                    nextNode = 'post_contravox_victory';
+                    achievementId = 'contravox_win';
                 } else {
-                    ui.showGameOver('Contravox venceu. O Inversus te consumiu...');
+                    ui.showGameOver("Contravox te derrotou!", '!romaD otreC zaf otreC');
+                    achievementId = 'first_defeat';
                 }
                 break;
             case 'versatrix':
                 if (won) {
-                    story.renderStoryNode('post_versatrix_victory');
+                    nextNode = 'post_versatrix_victory';
                 } else {
-                    storyState.lostToVersatrix = true;
-                    achievements.grantAchievement('versatrix_loss');
-                    story.renderStoryNode('post_versatrix_defeat');
+                    updateState('storyState', { ...state.storyState, lostToVersatrix: true });
+                    nextNode = 'post_versatrix_defeat';
+                    achievementId = 'versatrix_loss';
                 }
                 break;
             case 'reversum':
-                 if (won) {
-                     achievements.grantAchievement('reversum_win');
-                     story.renderStoryNode('post_reversum_victory');
-                 } else {
-                     ui.showGameOver('Rei Reversum venceu. O Inversus te consumiu...');
-                 }
+                if (won) {
+                    nextNode = 'post_reversum_victory';
+                    achievementId = 'reversum_win';
+                } else {
+                    ui.showGameOver("O Rei Reversum provou seu poder.", "DERROTADO");
+                    achievementId = 'first_defeat';
+                }
                 break;
             case 'necroverso_king':
-                 if (won) {
-                    achievements.grantAchievement('true_end_beta');
-                    story.renderStoryNode('post_necroverso_king_victory');
+                if (won) {
+                    nextNode = 'post_necroverso_king_victory';
+                     achievementId = 'true_end_beta';
                 } else {
-                    ui.showGameOver("Game Over");
+                    ui.showGameOver("Você foi derrotado pelas 3 faces do Rei Necroverso.", "FIM DE JOGO");
                 }
                 break;
             case 'necroverso_final':
                 if (won) {
-                    achievements.grantAchievement('true_end_final');
+                    achievementId = 'true_end_final';
                     story.playEndgameSequence();
                 } else {
-                    let message = "O Necroverso Final te derrotou.";
-                    if (reason === 'time') message = "O tempo acabou. Você foi consumido pelo Inversus.";
-                    if (reason === 'black_hole') message = "Você foi consumido por um Buraco Negro.";
-                    if (reason === 'collision') message = "O Necroverso Final te alcançou.";
-                    ui.showGameOver(message);
+                    let title = "FIM DE JOGO";
+                    let message = "A escuridão do Necroverso consumiu tudo...";
+                    if (reason === 'time') {
+                        title = "O TEMPO ACABOU";
+                        message = "O Inversum foi consumido pela escuridão...";
+                    } else if (reason === 'collision') {
+                        title = "FIM DA LINHA";
+                        message = "Você foi tocado pela escuridão do Necroverso e se tornou parte dela.";
+                    } else if (reason === 'black_hole') {
+                        title = "CONSUMIDO";
+                        message = "Você foi puxado para o vazio de um Buraco Negro.";
+                    }
+                    ui.showGameOver(message, title);
                 }
-                saveLoad.deleteSavedGame();
                 break;
         }
+
+        if (achievementId) {
+            achievements.grantAchievement(achievementId);
+        }
+
+        if (nextNode) {
+            document.body.dataset.storyContinuation = 'true';
+            setTimeout(() => {
+                dom.appContainerEl.classList.add('hidden');
+                dom.debugButton.classList.add('hidden');
+                dom.storyModeModalEl.classList.remove('hidden');
+                story.renderStoryNode(nextNode);
+                document.body.dataset.storyContinuation = 'false';
+            }, 2000);
+        }
+    });
+
+    document.addEventListener('showSplashScreen', () => {
+        ui.showSplashScreen();
     });
 }

@@ -1,5 +1,3 @@
-
-
 import { getState, updateState } from './state.js';
 import * as config from './config.js';
 import * as dom from './dom.js';
@@ -59,6 +57,33 @@ export async function triggerContravox() {
         renderAll();
         res();
     }, 1000));
+}
+
+/**
+ * Attempts to have an AI character speak a line of dialogue during their turn.
+ * @param {object} aiPlayer - The AI player object.
+ */
+export async function tryToSpeak(aiPlayer) {
+    const { gameState } = getState();
+    const dialogueConfig = config.AI_DIALOGUE[aiPlayer.aiType];
+    if (!dialogueConfig || Math.random() > 0.4) { // 40% chance to speak per turn
+        return;
+    }
+
+    const currentState = aiPlayer.status; // 'winning' or 'losing'
+    if (currentState !== 'winning' && currentState !== 'losing') {
+        return;
+    }
+    
+    const availableLines = dialogueConfig[currentState].filter(
+        line => !gameState.dialogueState.spokenLines.has(line)
+    );
+
+    if (availableLines.length > 0) {
+        const lineToSpeak = shuffle(availableLines)[0];
+        gameState.dialogueState.spokenLines.add(lineToSpeak);
+        updateLog(`${aiPlayer.name}: "${lineToSpeak}"`);
+    }
 }
 
 const showPlayerTargetModalForFieldEffect = (title, prompt, targetIds) => {

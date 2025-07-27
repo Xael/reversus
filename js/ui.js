@@ -67,6 +67,10 @@ export const renderCard = (card, context, playerId) => {
             classList.push('necro-glow');
         }
     }
+    
+    if (card.isLocked) {
+        classList.push('necro-glow'); // Re-use glow to show it's locked
+    }
 
     const isContravoxAbilityActive = isHumanPlayer && context === 'player-hand' && gameState.player1CardsObscured;
 
@@ -110,6 +114,19 @@ export const renderPlayerArea = (player) => {
     let fieldEffectIndicatorHTML = '';
     let heartsHTML = '';
     let playerNameClass = `player-name player-1`; // Default
+    let portraitHTML = '';
+
+    const storyBossPortraits = {
+        'necroverso_tutorial': 'necroverso.png',
+        'contravox': 'contravox.png',
+        'versatrix': 'versatrix.png',
+        'reversum': 'reversum.png'
+    };
+
+    if (storyBossPortraits[player.aiType]) {
+        portraitHTML = `<img src="${storyBossPortraits[player.aiType]}" class="player-area-character-portrait" alt="${player.name} portrait">`;
+    }
+
 
     if (player.name === 'Rei Necroverso') {
         if (player.aiType === 'reversum') playerNameClass = 'player-name player-2';
@@ -142,68 +159,38 @@ export const renderPlayerArea = (player) => {
         heartsHTML = `<div class="inversus-hearts-container" title="Corações">${heartsText}</div>`;
     }
     
-    let headerHTML;
     const positionLabel = gameState.isInversusMode ? 'Vitórias' : 'Casa';
     const positionValue = player.position;
+    const effectsHTML = effectsList.length > 0 ? effectsList.map(e => `<span>${e}</span>`).join(' ') : 'Nenhum';
+    const scoreDisplay = (player.id === 'player-1' && gameState.player1CardsObscured) ? '?' : player.liveScore;
 
+    const statsHTML = `
+        <div class="player-stats">
+            <div><span>Pontos:</span> <strong>${scoreDisplay}</strong></div>
+             ${!gameState.isInversusMode ? `<div><span>${positionLabel}:</span> <strong>${positionValue}</strong></div>` : ''}
+            <div><span>Resto:</span> <strong>${player.resto ? player.resto.name : 'N/A'}</strong></div>
+            <div class="effect-list"><span>Efeitos:</span> <strong>${effectsHTML}</strong></div>
+        </div>
+    `;
 
-    if (player.isHuman) {
-        const effectsHTML = effectsList.length > 0 ? effectsList.map(e => `<span class="effect-tag">${e}</span>`).join(' ') : 'Nenhum';
-        const scoreDisplay = (player.id === 'player-1' && gameState.player1CardsObscured) ? '?' : player.liveScore;
-        const statsHTML = gameState.isInversusMode
-            ? `<span>Pontos: <strong>${scoreDisplay}</strong></span>
-               <span>Resto: <strong>${player.resto ? player.resto.name : 'N/A'}</strong></span>
-               <span>Efeito: <strong>${effectsHTML}</strong></span>`
-            : `<span>Pontos: <strong>${scoreDisplay}</strong></span>
-               <span>${positionLabel}: <strong>${positionValue}</strong></span>
-               <span>Resto: <strong>${player.resto ? player.resto.name : 'N/A'}</strong></span>
-               <span>Efeito: <strong>${effectsHTML}</strong></span>`;
-
-        headerHTML = `
-            <div class="player-header human-player-header">
-                <div class="human-header-top">
-                    <div class="player-name-container">
-                        <span class="${playerNameClass}">${player.name}</span>
-                        ${heartsHTML}
-                        ${isRevealed ? '<div class="revealed-icon" title="Mão revelada"></div>' : ''}
-                        ${fieldEffectIndicatorHTML}
-                    </div>
-                    <div class="winning-badge ${player.isWinning ? '' : 'hidden'}">Ganhando</div>
+    let statusText = '';
+    if (player.status === 'winning') statusText = 'Vencendo';
+    if (player.status === 'losing') statusText = 'Perdendo';
+    
+    const headerHTML = `
+        <div class="player-header">
+            <div class="human-header-top">
+                <div class="player-name-container">
+                    <span class="${playerNameClass}">${player.name}</span>
+                    ${heartsHTML}
+                    ${isRevealed ? '<div class="revealed-icon" title="Mão revelada"></div>' : ''}
+                    ${fieldEffectIndicatorHTML}
                 </div>
-                <div class="human-stats">
-                    ${statsHTML}
-                </div>
+                <div class="player-status-indicator ${player.status}">${statusText}</div>
             </div>
-        `;
-    } else {
-        const effectsCompactHTML = effectsList.length > 0 ? effectsList.map(e => e).join(', ') : 'Nenhum';
-        const statsHTML = gameState.isInversusMode
-            ? `<span title="Pontuação">P: <strong>${player.liveScore}</strong></span>
-               <span title="Resto">R: <strong>${player.resto ? player.resto.name : 'N/A'}</strong></span>
-               <span title="Efeitos" class="opponent-effects">E: <strong>${effectsCompactHTML}</strong></span>`
-            : `<span title="Pontuação">P: <strong>${player.liveScore}</strong></span>
-               <span title="Caminho">C: <strong>${player.pathId !== -1 ? player.pathId + 1 : 'N/A'}</strong></span>
-               <span title="Posição">Pos: <strong>${positionValue}</strong></span>
-               <span title="Resto">R: <strong>${player.resto ? player.resto.name : 'N/A'}</strong></span>
-               <span title="Efeitos" class="opponent-effects">E: <strong>${effectsCompactHTML}</strong></span>`;
-        
-        headerHTML = `
-            <div class="player-header opponent-header">
-                <div class="opponent-header-top">
-                    <div class="player-name-container">
-                        <span class="${playerNameClass}">${player.name}</span>
-                        ${heartsHTML}
-                        ${isRevealed ? '<div class="revealed-icon" title="Mão revelada"></div>' : ''}
-                        ${fieldEffectIndicatorHTML}
-                    </div>
-                    <div class="winning-badge ${player.isWinning ? '' : 'hidden'}">Ganhando</div>
-                </div>
-                <div class="opponent-stats">
-                   ${statsHTML}
-                </div>
-            </div>
-        `;
-    }
+            ${statsHTML}
+        </div>
+    `;
     
     const handContext = player.isHuman || isRevealed ? 'player-hand' : 'ai-hand';
     
@@ -220,9 +207,10 @@ export const renderPlayerArea = (player) => {
     
     const valueCard1 = player.playedCards.value[0];
     const valueCard2 = player.playedCards.value[1];
-    const scoreEffectCard = player.playedCards.effect.find(c => ['Mais', 'Menos', 'NECRO X', 'NECRO X Invertido'].includes(c.name) || (c.name === 'Reversus' && c.reversedEffectType === 'score'));
-    const moveEffectCard = player.playedCards.effect.find(c => ['Sobe', 'Desce', 'Pula'].includes(c.name) || (c.name === 'Reversus' && c.reversedEffectType === 'movement'));
-    const reversusTotalCard = player.playedCards.effect.find(c => c.name === 'Reversus Total');
+    const scoreEffectCard = player.playedCards.effect.find(c => ['Mais', 'Menos', 'NECRO X', 'NECRO X Invertido'].includes(c.name) || (c.name === 'Reversus' && c.reversedEffectType === 'score') || (c.name === 'Reversus Total' && c.reversedEffectType === 'score'));
+    const moveEffectCard = player.playedCards.effect.find(c => ['Sobe', 'Desce', 'Pula'].includes(c.name) || (c.name === 'Reversus' && c.reversedEffectType === 'movement') || (c.name === 'Reversus Total' && c.reversedEffectType === 'movement'));
+    const reversusTotalCard = player.playedCards.effect.find(c => c.name === 'Reversus Total' && !c.reversedEffectType);
+
 
     const playZoneHTML = `
         <div class="play-zone" id="play-zone-${player.id}">
@@ -230,14 +218,15 @@ export const renderPlayerArea = (player) => {
             ${renderSlot(valueCard2, 'Valor 2')}
             ${renderSlot(scoreEffectCard, 'Pontuação')}
             ${renderSlot(moveEffectCard, 'Movimento')}
-            ${renderSlot(reversusTotalCard, 'Reversus Total')}
+            ${renderSlot(reversusTotalCard, 'Reversus T.')}
         </div>
     `;
 
     const areaContent = `
-        <div class="player-header">${headerHTML}</div>
+        ${headerHTML}
         ${playZoneHTML}
         <div class="player-hand" id="hand-${player.id}">${handHTML}</div>
+        ${portraitHTML}
     `;
     
     playerEl.innerHTML = areaContent;
@@ -350,7 +339,13 @@ export const updateTurnIndicator = () => {
     }
 
     const player = gameState.players[gameState.currentPlayer];
-    let turnText = `Vez de: ${player.name}`;
+    let turnText;
+    
+    if(player.isHuman){
+        turnText = `Sua vez`;
+    } else {
+        turnText = `Vez de: ${player.name}`;
+    }
 
     switch (gameState.gamePhase) {
         case 'paused': turnText = `${player.name} está pensando...`; break;
@@ -438,9 +433,15 @@ export const showRoundSummaryModal = (winners, scores) => {
  * @param {string} [title="Fim de Jogo!"] - The title of the modal.
  */
 export const showGameOver = (message, title = "Fim de Jogo!") => {
-    const { gameTimerInterval } = getState();
+    const { gameTimerInterval, gameState } = getState();
     if(gameTimerInterval) clearInterval(gameTimerInterval);
     updateState('gameTimerInterval', null);
+
+    // The logic to continue a story is handled in the 'storyWinLoss' event listener
+    // in ui-handlers.js. This check is an additional safeguard.
+    if (gameState?.isStoryMode && document.body.dataset.storyContinuation === 'true') {
+        return;
+    }
 
     dom.gameOverTitle.textContent = title;
     dom.gameOverMessage.textContent = message;
@@ -483,8 +484,8 @@ export const renderAll = () => {
         return;
     }
     renderBoard();
-    renderAllPlayerAreas();
     updateLiveScoresAndWinningStatus();
+    renderAllPlayerAreas();
     updateTurnIndicator();
 
     const playButton = dom.playButton;
@@ -508,31 +509,31 @@ export const renderAll = () => {
 export const showGameSetupModal = () => dom.gameSetupModal.classList.remove('hidden');
 
 export const renderPvpRooms = () => {
-    const { pvpRooms, achievements } = getState();
+    const { pvpRooms } = getState();
     
     dom.pvpRoomGridEl.innerHTML = pvpRooms.map(room => {
         const isSpecialRoom = room.id === 12;
         let roomClass = `color-${(room.id % 4) + 1}`;
         if (isSpecialRoom) roomClass = 'special-room';
         
-        const isRoomUnlocked = !isSpecialRoom || (isSpecialRoom && achievements.has('all_achievements'));
-        const roomName = isSpecialRoom ? "Sala Final" : `Sala ${room.id}`;
         let roomStatus, buttonText, buttonDisabled;
 
-        if (isRoomUnlocked) {
+        if (isSpecialRoom) {
+            // Room 12 is always available to attempt entry. The password modal is the lock.
             roomStatus = `${room.players}/4`;
             buttonText = 'Entrar';
             buttonDisabled = false;
         } else {
-            roomStatus = "Bloqueada";
-            buttonText = 'Bloqueada';
+            // Rooms 1-11 are always full
+            roomStatus = `Lotada`;
+            buttonText = 'Lotada';
             buttonDisabled = true;
         }
         
         return `
         <div class="room-card ${roomClass}">
             <div>
-                <h3>${roomName}</h3>
+                <h3>${isSpecialRoom ? "Sala Final" : `Sala ${room.id}`}</h3>
                 <p>Modo: ${room.mode}</p>
                 <p>Jogadores: ${roomStatus}</p>
             </div>

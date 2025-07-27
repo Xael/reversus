@@ -6,15 +6,15 @@ import { shatterImage } from './animations.js';
 const storyDialogue = {
     'start_necroverso': {
         character: 'Necroverso', image: 'necroverso.png',
-        text: 'Você está no Inversun... Eu sou o Necroverso. Se quiser voltar ao seu mundo, deve desafiar os soberanos deste lugar: Contravox, Versatrix e Reversum.',
+        text: 'Você está no Inversun... Eu sou o Necroverso. Se quiser voltar, deve desafiar os soberanos deste lugar: Contravox, Versatrix e Reversum.',
         options: [{ text: 'Como os desafio?', next: 'pre_tutorial_prompt' }]
     },
     'pre_tutorial_prompt': {
         character: 'Necroverso', image: 'necroverso.png',
         text: 'Eles jogam um jogo de cartas e tabuleiro. Quer que eu te ensine o básico em uma partida rápida?',
         options: [
-            { text: 'Sim', next: 'tutorial_explain_1' },
-            { text: 'Não, eu me viro', next: 'tutorial_skip' }
+            { text: 'Sim, por favor.', next: 'tutorial_explain_1' },
+            { text: 'Não, eu me viro.', next: 'tutorial_skip' }
         ]
     },
     'tutorial_skip': {
@@ -29,7 +29,7 @@ const storyDialogue = {
     },
     'tutorial_explain_2': {
         character: 'Necroverso', image: 'necroverso.png',
-        text: 'Sua pontuação é a soma de duas cartas de VALOR que você joga. Se tiver 2 ou mais cartas de valor, você DEVE jogar uma. A ultima carta jogada vira seu "Resto", a carta que sobrou fica pra próxima rodada.',
+        text: 'Sua pontuação é a soma de duas cartas de VALOR que você joga. Se tiver 2 ou mais cartas de valor, você DEVE jogar uma. Se tiver só uma, ela vira seu "Resto" e não pode ser jogada.',
         next: 'tutorial_explain_3', isContinue: true
     },
     'tutorial_explain_3': {
@@ -44,18 +44,18 @@ const storyDialogue = {
     },
     'tutorial_explain_5': {
         character: 'Necroverso', image: 'necroverso.png',
-        text: 'Chega de papo. Vamos jogar. Não se preocupe em vencer... vamos somente... brincar :)',
+        text: 'Chega de papo. Vamos jogar. Se vencer, a história continua. Se perder... a história também continua, mas eu vou rir de você.',
         isEndStory: true,
         startGame: { battle: 'tutorial_necroverso' }
     },
     'post_tutorial': {
         character: 'Necroverso', image: 'necroverso.png',
-        text: 'Pelo jeito você aprendeu... espero que tenha entendido tudo. Seu primeiro desafio real te aguarda.',
+        text: 'E com isso finalizamos o tutorial... espero que tenha entendido tudo. Seu primeiro desafio real te aguarda.',
         options: [{ text: "Entendi!", next: 'pre_contravox_intro' }]
     },
     'pre_contravox_intro': {
         character: 'Necroverso', image: 'necroverso3.png',
-        text: 'Mas antes vou te contar dois segredos sobre o Contravox para te ajudar no seu duelo...',
+        text: 'Vou te contar dois segredos sobre o Contravox para te ajudar no seu duelo...',
         options: [{ text: 'Dica é bom', next: 'pre_contravox_hint' }, { text: 'Não quero dicas', next: 'pre_contravox_hint' }]
     },
     'pre_contravox_hint': {
@@ -79,7 +79,7 @@ const storyDialogue = {
     },
     'pre_versatrix_intro': {
         character: 'Necroverso', image: 'necroverso3.png',
-        text: 'A Versatrix é do signo de gêmeos... e ela é... bem... valiosa!',
+        text: 'A Versatrix é do signo de gêmeos... e ela é valiosa!',
         options: [{ text: 'Certo... signos...', next: 'start_versatrix_dialogue' }, { text: 'Conceito de valor?', next: 'start_versatrix_dialogue' }]
     },
     'start_versatrix_dialogue': {
@@ -89,7 +89,7 @@ const storyDialogue = {
     },
     'versatrix_sinto_muito': {
         character: 'Versatrix', image: 'versatrix.png',
-        text: "Não sinta... eu não sinto nada... quem sabe nesse duelo você faça eu sentir... ;)",
+        text: "Não sinta... eu não sinto nada... quem sabe nesse duelo eu sinta ;)",
         isEndStory: true, startGame: { battle: 'versatrix' }
     },
     'versatrix_solteira': {
@@ -99,7 +99,7 @@ const storyDialogue = {
     },
     'post_versatrix_victory': {
         character: 'Necroverso', image: 'necroverso.png',
-        text: "Perfeito! Agora só falta o mais difícil...",
+        text: "Agora só falta o mais difícil...",
         options: [{ text: "Quando eu venço eles... o que acontece?", next: 'post_versatrix_ask_return' }]
     },
     'post_versatrix_defeat': {
@@ -119,8 +119,8 @@ const storyDialogue = {
     },
     'start_reversum': {
         character: 'Reversum', image: 'reversum.png',
-        text: "Está cometendo um erro me desafiando... EU SOU REX REVERSUM TOTEM! Curve-se ao seu REI!",
-        options: [{ text: "Bon... errar é humano...", next: 'reversum_end' }, { text: "Eu só quero zerar o jogo...", next: 'reversum_end' }, { text: "Leônidas?", next: 'reversum_end' }]
+        text: "Está cometendo um erro me desafiando...",
+        options: [{ text: "Errar é humano...", next: 'reversum_end' }, { text: "Só quero zerar o jogo...", next: 'reversum_end' }, { text: "Seto Kaiba?", next: 'reversum_end' }]
     },
     'reversum_end': {
         isEndStory: true,
@@ -128,7 +128,7 @@ const storyDialogue = {
     },
     'post_reversum_victory': {
         character: 'Necroverso', image: 'necroversorevelado.png',
-        text: "Finalmente com eles derrotados o Inversum me pertence, eu serei o Novo Rei.",
+        text: "Finalmente com eles derrotados o Invesun me pertence.",
         options: [{ text: "Certo... e nosso acordo?", next: 'final_confrontation_1' }]
     },
     'final_confrontation_1': {
