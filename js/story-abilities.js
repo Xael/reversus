@@ -4,7 +4,7 @@ import * as dom from './dom.js';
 import { updateLog, shuffle } from './utils.js';
 import { renderPlayerArea, renderAll, updateTurnIndicator, showGameOver, renderBoard } from './ui.js';
 import { animateNecroX } from './animations.js';
-import { announceEffect } from './sound.js';
+import { announceEffect, playSoundEffect } from './sound.js';
 import { applyEffect } from './game.js';
 
 /**
@@ -16,6 +16,7 @@ export async function triggerNecroX(caster) {
     gameState.necroXUsedThisRound = true;
     updateLog(`${caster.name}: "Essa é a minha melhor carta!"`);
 
+    playSoundEffect('x');
     document.body.classList.add('screen-shaking');
     animateNecroX();
 
@@ -45,6 +46,7 @@ export async function triggerNecroX(caster) {
 export async function triggerContravox() {
     const { gameState } = getState();
     updateLog("Contravox usa sua habilidade: OÃSUFNOC!");
+    playSoundEffect('confusao');
     announceEffect("OÃSUFNOC", "reversus-total", 2000);
 
     dom.storyScreenFlashEl.style.backgroundColor = 'black';
@@ -352,6 +354,9 @@ export async function triggerFieldEffects() {
                         if(p) p.hand = p.hand.filter(c => c.type === 'value');
                     }
                     updateLog(`'${effectName}' ativado para a equipe de ${player.name}, descartando cartas de efeito.`);
+                    break;
+                case 'Reversus Total':
+                    applyEffect({ name: 'Reversus Total' }, player.id, player.name);
                     break;
                 default:
                     team.forEach(memberId => {

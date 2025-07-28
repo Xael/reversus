@@ -1,6 +1,3 @@
-
-
-
 import * as dom from './dom.js';
 import { getState, updateState } from './state.js';
 import * as game from './game.js';
@@ -632,5 +629,16 @@ export function initializeUiHandlers() {
 
     document.addEventListener('showSplashScreen', () => {
         ui.showSplashScreen();
+    });
+
+    // This listener is the CRITICAL fix for story mode battles not starting.
+    // It listens for the event dispatched by the story module and starts the game.
+    document.addEventListener('startStoryGame', e => {
+        const { mode, options } = e.detail;
+        if (mode && options) {
+            game.initializeGame(mode, options);
+        } else {
+            console.error("Invalid 'startStoryGame' event detail:", e.detail);
+        }
     });
 }

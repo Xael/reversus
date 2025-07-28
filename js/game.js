@@ -2,7 +2,7 @@ import * as config from './config.js';
 import * as dom from './dom.js';
 import { getState, updateState } from './state.js';
 import { renderAll, updateTurnIndicator, showTurnIndicator, showRoundSummaryModal, renderPlayerArea, renderBoard, showGameOver, renderCard } from './ui.js';
-import { playStoryMusic, stopStoryMusic, announceEffect } from './sound.js';
+import { playStoryMusic, stopStoryMusic, announceEffect, playSoundEffect } from './sound.js';
 import { triggerFieldEffects, tryToSpeak } from './story-abilities.js';
 import { updateLog, shuffle, createDeck } from './utils.js';
 import { grantAchievement } from './achievements.js';
@@ -1071,6 +1071,7 @@ const resolveRound = async () => {
         if (versatrixScore < playerScore && [6, 7, 8, 9].includes(player1.position)) {
             gameState.versatrixSwapActive = true;
             updateLog("Versatrix usa sua habilidade: CAMPO VERSÁTIL!");
+            playSoundEffect('campoinverso');
             announceEffect('CAMPO VERSÁTIL!', 'reversus', 2500);
             await new Promise(res => setTimeout(res, 2500));
         }

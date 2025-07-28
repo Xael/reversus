@@ -22,8 +22,9 @@ export const playSoundEffect = (effectName) => {
     if (soundState.muted || !dom.sfxPlayer) return;
 
     let sfxSrc;
-    if (effectName === 'conquista') {
-        sfxSrc = 'conquista.wav';
+    const wavEffects = ['conquista', 'confusao', 'campoinverso', 'x'];
+    if (wavEffects.includes(effectName)) {
+        sfxSrc = `${effectName}.wav`;
     } else {
         sfxSrc = effectName.toLowerCase().replace(/\s/g, '') + '.ogg';
     }

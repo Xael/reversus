@@ -234,6 +234,15 @@ export const renderStoryNode = (nodeId) => {
     }
 
     if (node.isEndStory) {
+        // Safety check to prevent game from freezing if story node is misconfigured
+        if (!node.startGame || !node.startGame.battle) {
+            console.error(`Story node '${nodeId}' is set to end and start a game, but 'startGame' configuration is missing or invalid.`);
+            alert("Ocorreu um erro ao carregar a próxima batalha. Retornando ao menu principal.");
+            dom.storyModeModalEl.classList.add('hidden');
+            document.dispatchEvent(new Event('showSplashScreen'));
+            return;
+        }
+
         dom.storyModeModalEl.classList.add('hidden');
         let gameOptions, mode = 'solo';
         

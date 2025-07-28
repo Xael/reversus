@@ -166,10 +166,10 @@ export const renderPlayerArea = (player) => {
 
     const statsHTML = `
         <div class="player-stats">
-            <div><span>Pontos:</span> <strong>${scoreDisplay}</strong></div>
-             ${!gameState.isInversusMode ? `<div><span>${positionLabel}:</span> <strong>${positionValue}</strong></div>` : ''}
-            <div><span>Resto:</span> <strong>${player.resto ? player.resto.name : 'N/A'}</strong></div>
-            <div class="effect-list"><span>Efeitos:</span> <strong>${effectsHTML}</strong></div>
+            <span class="stat-item">Pontos: <strong>${scoreDisplay}</strong></span>
+            ${!gameState.isInversusMode ? `<span class="stat-item">${positionLabel}: <strong>${positionValue}</strong></span>` : ''}
+            <span class="stat-item">Resto: <strong>${player.resto ? player.resto.name : 'N/A'}</strong></span>
+            <span class="stat-item">Efeitos: <strong>${effectsHTML}</strong></span>
         </div>
     `;
 
